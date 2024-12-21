@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: meal_planning
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: auth-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+    networks:
+      - app_network
+
+  meal-service:
+    build:
+      context: ./services/meal-service
+    container_name: meal-service
+    ports:
+      - "4001:4001"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+volumes:
+  mongo_data:
+  postgres_data:
+
+networks:
+  app_network:
